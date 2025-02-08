@@ -1,2 +1,2 @@
 # chess-bot
-A simple chessbot
+A simple chessbot in Vue.js and Node
