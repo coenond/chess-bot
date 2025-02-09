@@ -1,19 +1,21 @@
 <script setup lang="ts">
 import ChessBoard from '../components/ChessBoard.vue'
+
+const showSideBard = false
 </script>
 
 <template>
   <div class="min-h-screen flex bg-background dark:bg-background-dark">
     <!-- Left Side: Chess Board -->
-    <div class="w-3/5 flex p-4">
+    <div :class="`${showSideBard ? 'w-3/5' : 'w-full'} flex p-4`">
       <ChessBoard />
     </div>
 
     <!-- Divider -->
-    <div class="w-[2px] bg-gray-400 dark:bg-gray-600 my-8"></div>
+    <div v-if="showSideBard" class="w-[2px] bg-gray-400 dark:bg-gray-600 my-8"></div>
 
     <!-- Right Side: Stats Panel -->
-    <div class="w-2/5 p-6">
+    <div v-if="showSideBard" class="w-2/5 p-6">
       <h2 class="text-xl font-semibold mb-4">Game Stats</h2>
       <div class="space-y-4">
         <div>
