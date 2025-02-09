@@ -12,11 +12,16 @@
             'aspect-square flex items-center justify-center relative',
             (rowIndex + colIndex) % 2 === 0 ? 'bg-neutral-200 dark:bg-neutral-300' : 'bg-emerald-700 dark:bg-emerald-600',
             'transition-all duration-300',
-            moveOptions?.map(m => m.to).includes(getSquare(rowIndex+1, colIndex+1)) ? 'bg-yellow-400 dark:bg-yellow-500' : ''
+            moveOptions?.map(m => m.to).includes(getSquare(rowIndex+1, colIndex+1)) && piece ? 'shadow-[inset_0_0_2px_2px_rgba(239,68,68,0.8)]' : ''
           ]"
           @click="squareClickHandler(rowIndex, colIndex, piece)"
           @dragover.prevent
         >
+          <!-- Just a dot -->
+          <div
+            v-if="moveOptions?.map(m => m.to).includes(getSquare(rowIndex+1, colIndex+1))"
+            class="absolute w-3 h-3 bg-black/40 dark:bg-white/40 rounded-full"
+          />
           <!-- Static pieces -->
           <div
             v-if="piece"
@@ -49,6 +54,7 @@ const getSquare = (row: number, col: number): Square => {
   return String.fromCharCode(96 + col) + mapping[row] as Square
 }
 
+
 const squareClickHandler = (row: number, col: number, piece: Piece|null) => {
   const squareClicked = getSquare(row+1, col+1);
 
@@ -71,9 +77,7 @@ const squareClickHandler = (row: number, col: number, piece: Piece|null) => {
     selectedPiece.value = null;
     moveOptions.value = null;
     gamePosition.value = chess.board()
-    console.log(chess.ascii())
   }
-
 }
 
 </script>
