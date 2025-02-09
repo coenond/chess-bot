@@ -1,5 +1,6 @@
 <template>
   <div class="w-full max-w-2xl mx-auto p-4">
+  <p class="py-4">You are playing: <b>{{ engine.name }}</b> - turn for {{ chess.turn() }}</p>
     <div
       class="aspect-square grid grid-cols-8 border border-gray-600 rounded-md overflow-hidden shadow-lg"
       @dragover.prevent
@@ -10,9 +11,9 @@
           :key="`${rowIndex}-${colIndex}`"
           :class="[
             'aspect-square flex items-center justify-center relative',
-            (rowIndex + colIndex) % 2 === 0 ? 'bg-neutral-200 dark:bg-neutral-300' : 'bg-emerald-700 dark:bg-emerald-600',
+            getSquareColor(rowIndex, colIndex) === 'w' ? 'bg-neutral-200 dark:bg-neutral-200' : 'bg-emerald-700 dark:bg-emerald-700',
             'transition-all duration-300',
-            moveOptions?.map(m => m.to).includes(getSquare(rowIndex+1, colIndex+1)) && piece ? 'shadow-[inset_0_0_2px_2px_rgba(239,68,68,0.8)]' : ''
+            moveOptions?.map(m => m.to).includes(getSquare(rowIndex+1, colIndex+1)) && piece ? 'shadow-[inset_0_0_4px_4px_rgba(239,68,68,0.6)]' : ''
           ]"
           @click="squareClickHandler(rowIndex, colIndex, piece)"
           @dragover.prevent
@@ -20,13 +21,16 @@
           <!-- Just a dot -->
           <div
             v-if="moveOptions?.map(m => m.to).includes(getSquare(rowIndex+1, colIndex+1))"
-            class="absolute w-3 h-3 bg-black/40 dark:bg-white/40 rounded-full"
+            class="absolute w-3 h-3 bg-black/40 rounded-full"
           />
           <!-- Static pieces -->
           <div
             v-if="piece"
-            class="absolute w-full h-full flex items-center justify-center cursor-grab hover:scale-110"
-            draggable="true"
+            :class="[
+              'absolute w-full h-full flex items-center justify-center',
+             piece.color === playerColor ? `cursor-grab hover:scale-110` : '',
+            ]"
+            :draggable="piece.color === playerColor"
           >
             <img
               :src="`/pieces/${piece.type}-${piece.color}.svg`"
@@ -43,22 +47,87 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Chess, type Piece, type Square, type Move} from 'chess.js'
+import { EngineFactory } from '@/engine/engine-factory';
 
 const chess = new Chess()
 const gamePosition = ref(chess.board());
 const moveOptions = ref<Move[]|null>(null);
 const selectedPiece = ref<Piece|null>(null);
+const playerColor = 'w';
+const engine = EngineFactory.create('v0');
+
+const captureSound = new Audio('/sounds/capture.mp3');
+const moveSound = new Audio('/sounds/move.mp3');
+const castleSound = new Audio('/sounds/castle.mp3');
+const checkSound = new Audio('/sounds/move-check.mp3');
+const gameEndSound = new Audio('/sounds/game-end.mp3');
+const gameStartSound = new Audio('/sounds/game-start.mp3');
+const illegalSound = new Audio('/sounds/illegal.mp3');
+const moveOpponentSound = new Audio('/sounds/move-opponent.mp3');
+const notifySound = new Audio('/sounds/notify.mp3');
+const promoteSound = new Audio('/sounds/promote.mp3');
+const tenSecondSound = new Audio('/sounds/tenseconds.mp3');
 
 const getSquare = (row: number, col: number): Square => {
   const mapping: Record<number, number> = {1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1};
   return String.fromCharCode(96 + col) + mapping[row] as Square
 }
 
+const getSquareColor = (row: number, col: number): string => (row + col) % 2 === 0 ? 'w' : 'b'
+
+const playSound = (move: Move, isCheck = false) => {
+  if (isCheck) {
+    checkSound.play();
+    return;
+  }
+
+  if (move.isPromotion()) {
+    promoteSound.play();
+    return;
+  }
+
+  if (move.isCapture() || move.isEnPassant()) {
+    captureSound.play();
+    return;
+  }
+
+  if (move.isKingsideCastle() || move.isQueensideCastle()) {
+    castleSound.play();
+    return;
+  }
+
+  move.color === playerColor ? moveSound.play() : moveOpponentSound.play();
+}
+
+const makeMove = (move: Move) => {
+    chess.move(move);
+    playSound(move, chess.inCheck());
+
+    if (chess.isCheckmate()) {
+      setTimeout(() => {
+        gamePosition.value = chess.board();
+        gameEndSound.play();
+        alert(`Game Over! Checkmate! ${chess.turn() !== playerColor ? 'You Win' : 'The Bot Wins'}!`);
+        return;
+      }, 200);
+    }
+
+    gamePosition.value = chess.board();
+    selectedPiece.value = null;
+    moveOptions.value = null;
+
+    if (chess.turn() !== playerColor) {
+      const botMove = engine.executor.search(chess);
+      setTimeout(() => {
+        makeMove(botMove);
+      }, 400);
+    }
+}
 
 const squareClickHandler = (row: number, col: number, piece: Piece|null) => {
   const squareClicked = getSquare(row+1, col+1);
 
-  if (piece && !moveOptions.value) {
+  if (piece && !moveOptions.value && piece.color === chess.turn()) {
     selectedPiece.value = piece;
     moveOptions.value = chess.moves({ square: squareClicked, verbose: true })
     return
@@ -71,12 +140,11 @@ const squareClickHandler = (row: number, col: number, piece: Piece|null) => {
   if (selectedPiece.value && moveOptions.value) {
     const move = moveOptions.value.find(m => m.to === squareClicked);
     if (move) {
-      chess.move(move);
-      gamePosition.value = chess.board();
+      makeMove(move);
+    } else {
+      selectedPiece.value = null;
+      moveOptions.value = null;
     }
-    selectedPiece.value = null;
-    moveOptions.value = null;
-    gamePosition.value = chess.board()
   }
 }
 
