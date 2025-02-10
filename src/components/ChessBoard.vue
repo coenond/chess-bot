@@ -54,7 +54,7 @@ const gamePosition = ref(chess.board());
 const moveOptions = ref<Move[]|null>(null);
 const selectedPiece = ref<Piece|null>(null);
 const playerColor = 'w';
-const engine = EngineFactory.create('v0');
+const engine = EngineFactory.create('v2Cas');
 
 const captureSound = new Audio('/sounds/capture.mp3');
 const moveSound = new Audio('/sounds/move.mp3');
@@ -74,7 +74,6 @@ const getSquare = (row: number, col: number): Square => {
 }
 
 const getSquareColor = (row: number, col: number): string => (row + col) % 2 === 0 ? 'w' : 'b'
-
 const playSound = (move: Move, isCheck = false) => {
   if (isCheck) {
     checkSound.play();
