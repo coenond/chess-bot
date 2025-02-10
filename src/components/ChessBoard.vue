@@ -33,7 +33,7 @@
             :draggable="piece.color === playerColor"
           >
             <img
-              :src="`/pieces/${piece.type}-${piece.color}.svg`"
+              :src="`${path}/pieces/${piece.type}-${piece.color}.svg`"
               :alt="`${piece.type}-${piece.color}`"
               class="w-4/5 h-4/5 pointer-events-none"
             />
@@ -56,17 +56,18 @@ const selectedPiece = ref<Piece|null>(null);
 const playerColor = 'w';
 const engine = EngineFactory.create('v2Cas');
 
-const captureSound = new Audio('/sounds/capture.mp3');
-const moveSound = new Audio('/sounds/move.mp3');
-const castleSound = new Audio('/sounds/castle.mp3');
-const checkSound = new Audio('/sounds/move-check.mp3');
-const gameEndSound = new Audio('/sounds/game-end.mp3');
-const gameStartSound = new Audio('/sounds/game-start.mp3');
-const illegalSound = new Audio('/sounds/illegal.mp3');
-const moveOpponentSound = new Audio('/sounds/move-opponent.mp3');
-const notifySound = new Audio('/sounds/notify.mp3');
-const promoteSound = new Audio('/sounds/promote.mp3');
-const tenSecondSound = new Audio('/sounds/tenseconds.mp3');
+const path = import.meta.env.MODE === 'development' ? '' : '/chess-bot';
+const captureSound = new Audio(`${path}/sounds/capture.mp3`);
+const moveSound = new Audio(`${path}/sounds/move.mp3`);
+const castleSound = new Audio(`${path}/sounds/castle.mp3`);
+const checkSound = new Audio(`${path}/sounds/move-check.mp3`);
+const gameEndSound = new Audio(`${path}/sounds/game-end.mp3`);
+const gameStartSound = new Audio(`${path}/sounds/game-start.mp3`);
+const illegalSound = new Audio(`${path}/sounds/illegal.mp3`);
+const moveOpponentSound = new Audio(`${path}/sounds/move-opponent.mp3`);
+const notifySound = new Audio(`${path}/sounds/notify.mp3`);
+const promoteSound = new Audio(`${path}/sounds/promote.mp3`);
+const tenSecondSound = new Audio(`${path}/sounds/tenseconds.mp3`);
 
 const getSquare = (row: number, col: number): Square => {
   const mapping: Record<number, number> = {1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1};
@@ -116,8 +117,8 @@ const makeMove = (move: Move) => {
     moveOptions.value = null;
 
     if (chess.turn() !== playerColor) {
-      const botMove = engine.executor.search(chess);
       setTimeout(() => {
+        const botMove = engine.executor.search(chess);
         makeMove(botMove);
       }, 400);
     }
