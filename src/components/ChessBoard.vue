@@ -54,7 +54,7 @@ const gamePosition = ref(chess.board());
 const moveOptions = ref<Move[]|null>(null);
 const selectedPiece = ref<Piece|null>(null);
 const playerColor = 'w';
-const engine = EngineFactory.create('v0');
+const engine = EngineFactory.create('v1');
 
 const path = import.meta.env.MODE === 'development' ? '' : '/chess-bot';
 const captureSound = new Audio(`${path}/sounds/capture.mp3`);
@@ -118,8 +118,8 @@ const makeMove = (move: Move) => {
     moveOptions.value = null;
 
     if (chess.turn() !== playerColor) {
-      const botMove = engine.executor.search(chess);
       setTimeout(() => {
+        const botMove = engine.executor.search(chess);
         makeMove(botMove);
       }, 400);
     }

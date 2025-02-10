@@ -1,5 +1,6 @@
 import type { Engine } from "./engine";
 import { v0Engine } from "./v0.engine";
+import { v1Engine } from "./v1.engine";
 
 export type EngineType = {
     name: string;
@@ -11,11 +12,9 @@ export class EngineFactory {
     static create(version: string): EngineType {
         switch (version) {
             case "v0":
-                return {
-                    name: 'v0-bogobot',
-                    version: 'v0.0.0',
-                    executor: new v0Engine()
-                };
+                return { name: 'v0-bogobot', version: 'v0.0.0', executor: new v0Engine() };
+            case "v1":
+                return { name: 'v1-greedybot', version: 'v1.0.0', executor: new v1Engine() };
             default:
                 throw new Error("Invalid engine version");
         }
