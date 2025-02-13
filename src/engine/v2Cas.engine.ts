@@ -1,5 +1,5 @@
 import { BISHOP, BLACK, Chess, KING, KNIGHT, Move, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
-import type { Engine } from "./engine";
+import type { Engine, MoveHistoryEntry } from "./engine";
 
 const BLACK_LOST = 100000;
 const WHITE_LOST = -100000; 
@@ -8,7 +8,7 @@ export class v2Engine implements Engine {
 
     counter: number;
 
-    depth = 5;
+    depth = 4;
 
     // KNIGHT positions
     knightPositionsA = [18,19,20,21,26,27,28,29,34,35,36,37,42,43,44,45];
@@ -140,8 +140,9 @@ export class v2Engine implements Engine {
         return {evaluation: bestScore, move: bestMove};
     }
 
-    search(chess: Chess): Move {
+    search(chess: Chess): { move: Move, historyEnty: MoveHistoryEntry } {
         this.counter = 0;
+        const startTime = new Date();
         const result = this.minimax(chess, this.depth);
         console.log("evaluated positions: ", this.counter);
 
@@ -149,7 +150,20 @@ export class v2Engine implements Engine {
         console.log("evaluation result: ", result.evaluation);
         console.log("played move ", result?.move?.san);
         chess.undo();
-        return result.move || chess.moves({ verbose: true })[0];
+
+        const end = new Date();
+        const seconds = end.getMilliseconds() - startTime.getMilliseconds();
+
+        return {
+            move: result.move || chess.moves({ verbose: true })[0],
+            historyEnty: {
+              id: crypto.randomUUID(),
+              number: chess.history().length,
+              nodes: this.counter,
+              notation: result?.move?.san ?? chess.moves({ verbose: true })[0].san,
+              time: seconds,
+              eval: result.evaluation/100,
+          }};
     }
 
     evaluatePieces(boardArray: string[]): number {
