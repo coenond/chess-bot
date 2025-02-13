@@ -27,7 +27,7 @@ export class EngineFactory {
                 };
             case "v2Cas":
                 return {
-                    name: 'v2-bit-less-greedy-bot',
+                    name: 'v2-the-alpha-bot',
                     version: 'v2.0.0',
                     executor: new v2CasEngine()
                 };
