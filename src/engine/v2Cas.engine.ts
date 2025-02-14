@@ -90,7 +90,6 @@ export class v2Engine implements Engine {
                     b.isKingsideCastle() ||
                     b.isPromotion() ||
                     b.san.includes('+')) ? 1 : - 1;
-
             })
         }
 
@@ -146,10 +145,8 @@ export class v2Engine implements Engine {
         const result = this.minimax(chess, this.depth);
         console.log("evaluated positions: ", this.counter);
 
-        chess.move(result.move || chess.moves({ verbose: true })[0]);
         console.log("evaluation result: ", result.evaluation);
         console.log("played move ", result?.move?.san);
-        chess.undo();
 
         const end = new Date();
         const seconds = end.getMilliseconds() - startTime.getMilliseconds();
@@ -157,13 +154,13 @@ export class v2Engine implements Engine {
         return {
             move: result.move || chess.moves({ verbose: true })[0],
             historyEnty: {
-              id: crypto.randomUUID(),
-              number: chess.history().length,
-              nodes: this.counter,
-              notation: result?.move?.san ?? chess.moves({ verbose: true })[0].san,
-              time: seconds,
-              eval: result.evaluation/100,
-          }};
+                id: crypto.randomUUID(),
+                number: chess.history().length,
+                nodes: this.counter,
+                notation: result?.move?.san ?? chess.moves({ verbose: true })[0].san,
+                time: seconds,
+                eval: result.evaluation/100,
+        }};
     }
 
     evaluatePieces(boardArray: string[]): number {
