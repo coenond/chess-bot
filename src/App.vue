@@ -55,7 +55,7 @@ const getEvalColor = (eval_: number): string => {
             >
               <td class="py-2 px-2">{{ move.number }}</td>
               <td class="py-2 px-2">{{ move.notation }}</td>
-              <td class="py-2 px-2 text-right">{{ move.time }}ms</td>
+              <td class="py-2 px-2 text-right">{{ Math.abs(move.time) }}ms</td>
               <td class="py-2 px-2 text-right">{{ formatNumber(move.nodes) }}</td>
               <td class="py-2 px-2 text-right" :class="getEvalColor(move.eval)">
                 {{ formatEval(move.eval) }}

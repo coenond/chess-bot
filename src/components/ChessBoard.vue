@@ -2,13 +2,30 @@
   <div class="w-full max-w-2xl mx-auto p-4">
     <div class="py-4 flex justify-between">
       <EngineSelector v-if="!gameStarted" @select="(engine) => setBlackPlayer(engine)"/>
-      <button
-          v-if="!gameStarted"
-          @click="startGame"
-          class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-all duration-150 hover:shadow-md active:scale-95 dark:bg-emerald-700 dark:hover:bg-emerald-800"
+      <div>
+        <button
+            v-if="!gameStarted"
+            @click="startGame"
+            class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg shadow-sm transition-all duration-150 hover:shadow-md active:scale-95 dark:bg-emerald-700 dark:hover:bg-emerald-800"
+          >
+          Start Game
+        </button>
+      </div>
+      <div v-if="gameStarted">
+        <button
+          @click="pauseGame"
+          class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg shadow-sm transition-all duration-150 hover:shadow-md active:scale-95 dark:bg-amber-700 dark:hover:bg-amber-800"
         >
-        Start Game
-      </button>
+          {{ gamePaused ? 'Resume Engine' : 'Pause Engine' }}
+        </button>
+        <button
+          @click="nextMove"
+          :disabled="!gamePaused"
+          class="ml-3 px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg shadow-sm transition-all duration-150 hover:shadow-md active:scale-95 dark:bg-slate-700 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+         >
+        </button>
+      </div>
     </div>
     <div
       class="aspect-square grid grid-cols-8 border border-gray-600 rounded-md overflow-hidden shadow-lg"
@@ -60,8 +77,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Chess, type Piece, type Square, type Move} from 'chess.js'
-import { EngineFactory } from '@/engine/engine-factory';
+import { EngineFactory, type EngineType } from '@/engine/engine-factory';
 import EngineSelector from '@/components/EngineSelector.vue';
+import type { MoveHistoryEntry } from '@/engine/engine';
 
 enum FenPositions {
   Start = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
@@ -71,6 +89,7 @@ enum FenPositions {
 const chess = new Chess();
 const gamePosition = ref(chess.board());
 const gameStarted = ref(false);
+const gamePaused = ref(false);
 const moveOptions = ref<Move[]|null>(null);
 const selectedPiece = ref<Piece|null>(null);
 
@@ -95,8 +114,8 @@ const tenSecondSoundPath = `${path}/sounds/tenseconds.mp3`;
 
 const emit = defineEmits<{(e: 'move', move: MoveHistoryEntry): void}>()
 
-const setWhitePlayer = (engine) => whitePlayer.value = EngineFactory.create(engine.version);
-const setBlackPlayer = (engine) => blackPlayer.value = EngineFactory.create(engine.version);
+const setWhitePlayer = (engine: EngineType) => whitePlayer.value = EngineFactory.create(engine.version);
+const setBlackPlayer = (engine: EngineType) => blackPlayer.value = EngineFactory.create(engine.version);
 
 const startGame = () => {
   if (!whitePlayer.value || !blackPlayer.value) {
@@ -109,8 +128,9 @@ const startGame = () => {
   gameStartSound.play();
 
   gameStarted.value = true;
-  setTimeout(() => nextMove(), 500);
+  setTimeout(() => nextMove(), 25);
 }
+const pauseGame = () => gamePaused.value = !gamePaused.value;
 
 const getSquare = (row: number, col: number): Square => {
   const mapping: Record<number, number> = {1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1};
@@ -150,6 +170,7 @@ const playSound = (move: Move, isCheck = false) => {
 const nextMove = () => {
   const player = chess.turn() === 'w' ? whitePlayer : blackPlayer;
 
+  if (!player.value || !player.value.executor) return;
   if (player.value.name === 'manual') return;
 
   const engineMove = player.value.executor.search(chess);
@@ -163,6 +184,7 @@ const makeMove = (move: Move) => {
 
     if (chess.isCheckmate() || chess.isDraw()) {
       gamePosition.value = chess.board();
+      const gameEndSound = new Audio(gameEndSoundPath);
       gameEndSound.play();
       // todo - fix alert for stalemate
       alert(`Game Over! Checkmate! ${chess.turn() !== playerColor ? 'You Win' : 'The Bot Wins'}!`);
@@ -173,7 +195,9 @@ const makeMove = (move: Move) => {
     selectedPiece.value = null;
     moveOptions.value = null;
 
-    setTimeout(() => nextMove(), 100);
+    if (!gamePaused.value) {
+      setTimeout(() => nextMove(), 100);
+    }
 }
 
 const squareClickHandler = (row: number, col: number, piece: Piece|null) => {
