@@ -17,12 +17,6 @@ export class v1Engine implements Engine {
         score += piece.color === "w" ? pieceValues[piece.type] : -pieceValues[piece.type];
       }
     }
-
-    if (score === -9) {
-      console.log(chess.history());
-      console.log(chess.ascii());
-    }
-
     return score;
   }
 
