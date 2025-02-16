@@ -3,7 +3,7 @@ import { v0Engine } from "./v0.engine";
 import { v1Engine as v1CasEngine } from "./v1Cas.engine";
 import { v2Engine as v2CasEngine } from "./v2Cas.engine";
 import { v1Engine } from "./v1.engine";
-//import { v1point2Engine } from "./v1point2.engine";
+import { v2Engine } from "./v2/v2.engine";
 
 export type EngineType = {
     name: string;
@@ -23,6 +23,7 @@ export const engines = [
     { name: 'v1-greedybot', version: 'v1', construct: v1Engine },
     //{ name: 'v1.2-smarter-greedybot', version: 'v1.2', construct: v1point2Engine },
     { name: 'v2-cas-alpha-bot', version: 'v2Cas', construct: v2CasEngine },
+    { name: 'v2-smarter-greedy', version: 'v2', construct: v2Engine }
 ];
 
 export class EngineFactory {
