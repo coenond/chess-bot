@@ -59,15 +59,18 @@ export class v2Engine implements Engine {
     const moves = chess.moves({ verbose: true });
     const isMaximizing = chess.turn() === "w";
     let bestMove = moves[0];
-    let bestScore = -Infinity;
-    let currentEval = 0;
+    let bestScore = isMaximizing ? -Infinity : Infinity;
 
     for (const move of moves) {
       chess.move(move);
       // const score = this.minimax(chess, this.depth, isMaximizing);
       const score = this.alphaBeta(chess, this.depth, -Infinity, Infinity, !isMaximizing);
 
-      if (score > bestScore) {
+      if (isMaximizing && score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+      if (!isMaximizing && score < bestScore) {
         bestScore = score;
         bestMove = move;
       }
